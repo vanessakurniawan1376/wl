@@ -1,0 +1,16 @@
+export const categories=[{id:'food',name:'Kemasan makanan',description:'Wadah dan pembungkus untuk usaha kuliner.',shape:'box'},{id:'drinks',name:'Gelas & botol',description:'Kemasan untuk minuman dan kebutuhan usahamu.',shape:'cup'},{id:'bowls',name:'Paper bowl',description:'Mangkuk kertas dalam berbagai pilihan.',shape:'bowl'},{id:'bags',name:'Kantong & kresek',description:'Kantong untuk belanja dan membungkus.',shape:'bag'},{id:'plastic',name:'Plastik HD, PP & PE',description:'Pilihan plastik untuk kebutuhan pengemasan.',shape:'plastic'},{id:'supplies',name:'Perlengkapan usaha',description:'Pelengkap kebutuhan makanan dan minuman.',shape:'tools'}];
+export const defaults={background:'#f7f9f5',brand:'#184f40',accent:'#e4f1ac',heading:'Kemasan tepat.\nUsaha makin siap.',description:'Dari kantong plastik sampai kemasan makanan dan minuman. Temukan kebutuhan usahamu di Lily Plastic.',heroImage:''};
+// Illustrative initial variants, never advertised as verified inventory or prices.
+const variants={food:['Mika makanan','Pembungkus makanan','Wadah makanan'],drinks:['Gelas plastik','Botol plastik','Tutup gelas'],bowls:['Paper bowl kecil','Paper bowl sedang','Paper bowl besar'],bags:['Kantong kresek kecil','Kantong kresek sedang','Kantong kresek besar'],plastic:['Plastik HD','Plastik PP','Plastik PE'],supplies:['Sedotan','Sendok & garpu plastik','Tisu']};
+export const examples=categories.flatMap(c=>variants[c.id].map((name,i)=>({id:`example-${c.id}-${i}`,category:c.id,name,description:'Contoh varian. Ukuran, isi per kemasan, dan ketersediaan perlu dikonfirmasi ke toko.',price:null,unit:'pak',image:'',visible:1,example:1,updated_at:''})));
+export function checkProduct(p){
+ if(!p||typeof p!=='object'||Array.isArray(p))throw new Error('Data produk tidak valid.');
+ const text=(v,max)=>{if(typeof v!=='string'||v.length>max)throw new Error('Teks terlalu panjang atau tidak valid.');return v.trim()};
+ const name=text(p.name,160),description=text(p.description??'',2000),unit=text(p.unit??'pak',60);
+ if(!name||!unit||!categories.some(c=>c.id===p.category))throw new Error('Lengkapi nama, kategori, dan satuan.');
+ const price=p.price===null||p.price===''?null:p.price;
+ if(price!==null&&(!Number.isSafeInteger(price)||price<0||price>1000000000))throw new Error('Harga harus berupa angka rupiah bulat antara 0 dan 1.000.000.000.');
+ return {name,category:p.category,description,price,unit,image:checkImage(p.image??''),visible:p.visible===false||p.visible===0?0:1,example:p.example===true||p.example===1?1:0};
+}
+export function checkImage(v){if(typeof v!=='string'||v.length>2000)throw new Error('Alamat gambar tidak valid.');if(!v)return '';if(/^\/media\/[a-f0-9-]+\.(png|jpg|webp)$/.test(v))return v;try{const u=new URL(v);if(u.protocol==='https:'&&!u.username&&!u.password)return u.href}catch{}throw new Error('Gunakan alamat gambar HTTPS atau unggah foto.');}
+export function checkSettings(s){const out={};for(const key of ['background','brand','accent']){if(!/^#[0-9a-f]{6}$/i.test(s[key]))throw new Error('Warna tidak valid.');out[key]=s[key]}for(const key of ['heading','description']){if(typeof s[key]!=='string'||!s[key].trim()||s[key].length>(key==='heading'?160:700))throw new Error('Judul atau deskripsi tidak valid.');out[key]=s[key].trim()}out.heroImage=checkImage(s.heroImage??'');return out;}
